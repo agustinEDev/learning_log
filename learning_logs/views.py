@@ -21,8 +21,7 @@ def topic (request, topic_id):
     """Muestra un tema concreto y todas sus entradas."""
     topic = Topic.objects.get(id = topic_id)
     # Se asegura de que el tema pertenece al usuario actual.
-    if topic.owner != request.user:
-        raise Http404
+    check_topic_owner(request, topic.id)
     
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic': topic, 'entries': entries}
@@ -51,6 +50,8 @@ def new_topic (request):
 def new_entry (request, topic_id):
     """Añade una entrada nueva para un tema en particular."""
     topic = Topic.objects.get(id = topic_id)
+    # Se asegura de que el tema pertenece al usuario actual.
+    check_topic_owner(request, topic.id)
 
     if request.method != 'POST':
         # No se ha enviado datos; se crea un formulario en blanco.
@@ -74,8 +75,7 @@ def edit_entry (request, entry_id):
     entry = Entry.objects.get(id = entry_id)
     topic = entry.topic
     # Se asegura de que el tema pertenece al usuario actual.
-    if topic.owner != request.user:
-        raise Http404
+    check_topic_owner(request, topic.id)
 
     if request.method != 'POST':
         # Solicitud inicial; prerrellena el formulario con la entrada actual.
@@ -89,3 +89,10 @@ def edit_entry (request, entry_id):
         
     context = {'entry': entry, 'topic': topic, 'form': form}
     return render(request, 'learning_logs/edit_entry.html', context)
+
+def check_topic_owner (request, topic_id):
+    """Comprueba que el tema pertenece al usuario actual."""
+    topic = Topic.objects.get(id = topic_id)
+    if topic.owner != request.user:
+        raise Http404
+    return topic
