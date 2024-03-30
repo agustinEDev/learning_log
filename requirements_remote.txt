@@ -1,0 +1,3 @@
+# Requisitos para el proyecto en vivo.
+gunicorn
+psycopg2
